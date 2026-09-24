@@ -1,0 +1,162 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: drops
+    description: BML Universe drop generation operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /drops/generate:
+    post:
+      operationId: generateDrops
+      tags: [drops]
+      summary: Generate one or more BML universe drops
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateDropsBody"
+      responses:
+        "200":
+          description: Generated drops
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Drop"
+  /drops/stats:
+    get:
+      operationId: getDropStats
+      tags: [drops]
+      summary: Get universe stats - category distribution and totals
+      responses:
+        "200":
+          description: Universe statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DropStats"
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    GenerateDropsBody:
+      type: object
+      properties:
+        filter:
+          type: string
+          enum: [Horror, Comedy, Rave, Street, Retro, Weird, Mixed]
+          description: Genre filter for the generated drops
+        count:
+          type: integer
+          minimum: 1
+          maximum: 10
+          description: Number of drops to generate (default 1)
+        seed:
+          type: string
+          description: Optional seed for repeatable universe generation
+      required: []
+    Drop:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+          description: The main title (movie, legend, arcade, band, story name)
+        type:
+          type: string
+          enum: [movie, legend, arcade, band, story]
+          description: What kind of cultural artifact this is
+        category:
+          type: string
+          enum: [Horror, Comedy, Rave, Street, Retro, Weird, Mixed]
+        lore:
+          type: string
+          description: 2-4 lines of whispered storytelling
+        tshirtConcept:
+          $ref: "#/components/schemas/TshirtConcept"
+        tagline:
+          type: string
+          description: A punchy or ironic tagline
+        generatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - type
+        - category
+        - lore
+        - tshirtConcept
+        - tagline
+        - generatedAt
+    TshirtConcept:
+      type: object
+      properties:
+        fonts:
+          type: string
+          description: Font style description (graffiti / retro / glitch etc.)
+        colors:
+          type: string
+          description: Color palette description
+        symbols:
+          type: string
+          description: Visual symbols and imagery
+        vibe:
+          type: string
+          description: Overall design vibe
+      required:
+        - fonts
+        - colors
+        - symbols
+        - vibe
+    DropStats:
+      type: object
+      properties:
+        totalGenerated:
+          type: integer
+        categoryBreakdown:
+          type: object
+          additionalProperties:
+            type: integer
+        typeBreakdown:
+          type: object
+          additionalProperties:
+            type: integer
+        recentDropNames:
+          type: array
+          items:
+            type: string
+      required:
+        - totalGenerated
+        - categoryBreakdown
+        - typeBreakdown
+        - recentDropNames
